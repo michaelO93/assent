@@ -26,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link className="hover:text-ink" href="/parent">For parents</Link>
               <Link className="hover:text-ink" href="/demo/doodle-quest">Demo app</Link>
               <Link className="hover:text-ink" href="/audit">Audit</Link>
+              <Link className="hover:text-ink" href="/legal">Legal</Link>
               <Link className="hover:text-ink" href="/developers">Developers</Link>
             </div>
           </nav>

@@ -9,7 +9,8 @@ import {
   validateScopes,
   type AgeBand,
 } from "@/lib/consent";
-import { contractErrorMessage, registry, sendTx } from "@/lib/server/chain";
+import { contractErrorMessage, publicClient, registry, sendTx } from "@/lib/server/chain";
+import { MAX_CONSENTS_PER_GUARDIAN, guardRelay } from "@/lib/server/guard";
 
 type GrantBody = {
   app: string;
@@ -35,6 +36,13 @@ export async function POST(req: Request) {
   const scopes = body.approvedScopes ?? [];
   const scopeError = validateScopes(app, scopes);
   if (scopeError) return bad(scopeError);
+
+  const existing = await publicClient.readContract({ ...registry, functionName: "consentsOf", args: [body.guardian] });
+  if (existing.length >= MAX_CONSENTS_PER_GUARDIAN) {
+    return bad(`This demo allows ${MAX_CONSENTS_PER_GUARDIAN} consents per parent`);
+  }
+  const blocked = await guardRelay(req, "write");
+  if (blocked) return blocked;
 
   const receipt = buildReceipt({
     app,

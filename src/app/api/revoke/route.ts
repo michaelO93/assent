@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isHex, type Hex } from "viem";
 import { contractErrorMessage, registry, sendTx } from "@/lib/server/chain";
+import { guardRelay } from "@/lib/server/guard";
 
 export async function POST(req: Request) {
   const { consentId, signature } = (await req.json()) as { consentId?: Hex; signature?: Hex };
@@ -10,6 +11,9 @@ export async function POST(req: Request) {
   if (!signature || !isHex(signature)) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
+  const blocked = await guardRelay(req, "write");
+  if (blocked) return blocked;
+
   try {
     const { hash } = await sendTx({ ...registry, functionName: "revoke", args: [consentId, signature] });
     return NextResponse.json({ txHash: hash });

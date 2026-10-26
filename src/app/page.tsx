@@ -38,6 +38,7 @@ export default function Home() {
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/demo/doodle-quest">Try the demo app</ButtonLink>
           <ButtonLink href="/parent" variant="secondary">Parent dashboard</ButtonLink>
+          <ButtonLink href="/legal" variant="ghost">How it maps to the law</ButtonLink>
         </div>
       </section>
 
