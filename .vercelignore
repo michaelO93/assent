@@ -1,0 +1,6 @@
+# The web app needs only src/ (including src/lib/generated); the contract project and local secrets stay local.
+chain
+.env*
+!.env.example
+.next
+node_modules

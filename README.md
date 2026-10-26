@@ -1,5 +1,7 @@
 # Assent
 
+**Live demo: [assent-sage.vercel.app](https://assent-sage.vercel.app)** · start at the [demo app](https://assent-sage.vercel.app/demo/doodle-quest)
+
 **Verifiable parental consent, without the surveillance.** A parent says yes to a children's app once, the app gets
 proof of that consent and a per-app pseudonym for the child, and the parent can withdraw it at any time. The child's
 identity never leaves the parent's device.
@@ -81,7 +83,8 @@ No faucet working for you? Mine Sepolia ETH at [sepolia-faucet.pk910.de](https:/
 
 - [x] **Day 1 (Oct 26)**: contract + tests, consent/grant/revoke/verify API, parent dashboard, consent screen, demo
   app, audit view; full loop verified locally
-- [ ] **Day 2 (Oct 27)**: deploy to Base Sepolia + Vercel, BaseScan links, QR hand-off between devices
+- [x] **Day 2 (done Oct 26)**: deployed to Base Sepolia + Vercel, BaseScan links
+- [ ] QR hand-off between the child's and parent's devices
 - [ ] **Day 3 (Oct 28)**: polish (mobile, empty/error states), second demo app showing unlinkable pseudonyms,
   legal mapping page (COPPA / GDPR Art. 8 / NDPA requirement → feature)
 - [ ] **Day 4 (Oct 29)**: demo video script + recording, README screenshots
