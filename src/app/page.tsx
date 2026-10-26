@@ -1,103 +1,92 @@
-import Image from "next/image";
+import { ButtonLink, Card } from "@/components/ui";
+
+const problems = [
+  {
+    title: "Tick-box age gates prove nothing",
+    body: "“I am over 13” is one click for any child. Regulators no longer accept it as consent.",
+  },
+  {
+    title: "Real verification hoards sensitive data",
+    body: "Apps that check properly collect parents’ IDs and card details, creating a new breach risk.",
+  },
+  {
+    title: "Consent can’t be proven later",
+    body: "When a regulator asks, the app has a database row it controls. It can be edited, backdated or lost.",
+  },
+];
+
+const steps = [
+  ["Verify once", "A parent proves they are an adult with an ID provider. Only a hash of the check is recorded."],
+  ["Approve what’s asked", "The app shows exactly what data it wants and why. The parent approves each use and signs."],
+  ["App gets a yes, not an identity", "The app receives a per-app pseudonym and the approved scopes. Never the child’s name or birthday."],
+  ["Revoke any time", "One tap withdraws consent. The app’s next check fails, and the record shows when."],
+];
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="space-y-16">
+      <section className="max-w-3xl space-y-6">
+        <p className="text-sm font-medium text-brand">Verifiable parental consent, without the surveillance</p>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          Let parents say yes to an app, without handing it their child&rsquo;s identity.
+        </h1>
+        <p className="text-lg text-ink-soft">
+          COPPA, GDPR Article 8, the UK Children&rsquo;s Code and Nigeria&rsquo;s NDPA 2023 all require parental consent
+          before processing a child&rsquo;s data. Assent gives apps proof of that consent and gives parents control of
+          it. Every grant and withdrawal is signed by the parent and recorded on a public ledger nobody can quietly edit.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href="/demo/doodle-quest">Try the demo app</ButtonLink>
+          <ButtonLink href="/parent" variant="secondary">Parent dashboard</ButtonLink>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        {problems.map((p) => (
+          <Card key={p.title}>
+            <h3 className="font-semibold">{p.title}</h3>
+            <p className="mt-2 text-sm text-ink-soft">{p.body}</p>
+          </Card>
+        ))}
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">How it works</h2>
+        <ol className="grid gap-4 sm:grid-cols-2">
+          {steps.map(([title, body], i) => (
+            <li key={title} className="flex gap-4">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand/10 text-sm font-semibold text-brand">
+                {i + 1}
+              </span>
+              <div>
+                <h3 className="font-medium">{title}</h3>
+                <p className="mt-1 text-sm text-ink-soft">{body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <h3 className="font-semibold">On the ledger</h3>
+          <ul className="mt-3 space-y-1.5 text-sm text-ink-soft">
+            <li>Parent&rsquo;s pseudonymous signing address</li>
+            <li>A per-app pseudonym for the child</li>
+            <li>Age band (under 13, 13&ndash;15, 16&ndash;17)</li>
+            <li>Approved scopes and a hash of the consent receipt</li>
+            <li>When consent was granted, when it expires, when it was withdrawn</li>
+          </ul>
+        </Card>
+        <Card>
+          <h3 className="font-semibold">Never leaves the parent&rsquo;s device</h3>
+          <ul className="mt-3 space-y-1.5 text-sm text-ink-soft">
+            <li>The child&rsquo;s name and birth year</li>
+            <li>The parent&rsquo;s ID document and personal details</li>
+            <li>Anything that links the same child across two apps</li>
+          </ul>
+        </Card>
+      </section>
     </div>
   );
 }
