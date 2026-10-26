@@ -42,9 +42,25 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
 function Logo() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect width="24" height="24" rx="7" fill="var(--brand)" />
-      <path d="M7 12.5l3.2 3.2L17 9" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    // Same mark as src/app/icon.svg: a parent and child inside a shield.
+    <svg width="24" height="24" viewBox="0 0 512 512" aria-hidden>
+      <defs>
+        <linearGradient id="logo-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#4c6ef5" />
+          <stop offset="1" stopColor="#6741d9" />
+        </linearGradient>
+        <clipPath id="logo-shield">
+          <path d="M256 104 L388 152 V258 C388 344 332 398 256 426 C180 398 124 344 124 258 V152 Z" />
+        </clipPath>
+      </defs>
+      <rect width="512" height="512" rx="116" fill="url(#logo-bg)" />
+      <path d="M256 104 L388 152 V258 C388 344 332 398 256 426 C180 398 124 344 124 258 V152 Z" fill="#fff" />
+      <g clipPath="url(#logo-shield)">
+        <circle cx="226" cy="236" r="38" fill="#5b55e6" />
+        <path d="M160 440 v-78 a66 66 0 0 1 132 0 v78 z" fill="#5b55e6" />
+        <circle cx="306" cy="286" r="26" fill="#f59f00" stroke="#fff" strokeWidth="8" />
+        <path d="M266 440 v-64 a40 40 0 0 1 80 0 v64 z" fill="#f59f00" stroke="#fff" strokeWidth="8" />
+      </g>
     </svg>
   );
 }
