@@ -64,8 +64,11 @@ export async function readConsent(consentId: Hex): Promise<OnchainConsent | null
 export async function sendTx(
   request: Parameters<typeof publicClient.simulateContract>[0],
 ): Promise<{ hash: Hex; result: unknown }> {
-  const sim = await publicClient.simulateContract(request);
-  const hash = await relayer().writeContract(sim.request);
+  // Simulate as the relayer: without an explicit account a real RPC simulates from the zero
+  // address (Hardhat's node quietly substitutes its first account, which hides this locally).
+  const wallet = relayer();
+  const sim = await publicClient.simulateContract({ ...request, account: wallet.account });
+  const hash = await wallet.writeContract(sim.request);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`Transaction ${hash} reverted`);
   return { hash, result: sim.result };

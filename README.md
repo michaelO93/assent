@@ -58,6 +58,11 @@ since the old parent key's consents no longer exist.
 
 ## Deploy to Base Sepolia
 
+Live registry: [`0xa94b978946d23f141f1c0cdc9e9eb5e69d1f81e9`](https://sepolia.basescan.org/address/0xa94b978946d23f141f1c0cdc9e9eb5e69d1f81e9) on Base Sepolia.
+
+No faucet working for you? Mine Sepolia ETH at [sepolia-faucet.pk910.de](https://sepolia-faucet.pk910.de/), then
+`npm run bridge --prefix chain` moves it to Base Sepolia through Base's official bridge.
+
 1. Create a fresh test-only key and fund it from a Base Sepolia faucet.
 2. `DEPLOYER_PRIVATE_KEY=0x… npm run deploy:base-sepolia --prefix chain`
 3. Set in the web host: `NEXT_PUBLIC_ASSENT_NETWORK=baseSepolia`, `RELAYER_PRIVATE_KEY=0x…` (same key: it's the

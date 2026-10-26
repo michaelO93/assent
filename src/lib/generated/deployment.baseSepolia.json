@@ -1,1 +1,5 @@
-{ "chainId": 84532, "address": null, "attestor": null }
+{
+  "chainId": 84532,
+  "address": "0xa94b978946d23f141f1c0cdc9e9eb5e69d1f81e9",
+  "attestor": "0x22197621a203acbc30e7fb3a5210372e7d32f163"
+}

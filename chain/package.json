@@ -7,7 +7,10 @@
     "test": "hardhat test",
     "node": "hardhat node",
     "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
-    "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia"
+    "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
+    "balance:base-sepolia": "hardhat run scripts/balance.ts --network baseSepolia",
+    "balance:sepolia": "hardhat run scripts/balance.ts --network sepolia",
+    "bridge": "hardhat run scripts/bridge.ts --network sepolia"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +20,7 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@openzeppelin/contracts": "^5.6.1",
     "@types/node": "^26.6.5",
+    "dotenv": "^16.6.1",
     "hardhat": "^2.29.1",
     "ts-node": "^10.9.2",
     "typescript": "~5.8"
