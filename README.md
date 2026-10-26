@@ -37,10 +37,20 @@ nor Assent's operator can fabricate, backdate or quietly delete consent. The rec
 | --- | --- |
 | Guardian address, per-app child pseudonym, age band, approved scopes, receipt hash, granted/expires/withdrawn times | Child's name and birth year, parent's ID and personal details, anything linking a child across apps |
 
+## Decentralized ID attestation with Chainlink CRE
+
+By default one attestor key records that a parent passed the ID check, which makes Assent a single trusted
+party. [`cre/idv-attestation`](cre/idv-attestation) is a Chainlink CRE workflow that takes over that job: it
+listens for `VerificationRequested`, has every DON node confirm the session with the ID provider, reaches
+consensus, and writes the verification through the Chainlink forwarder to `ConsentRegistry.onReport()`. The
+registry records who verified each parent, and the dashboard and audit page show "verified via Chainlink
+CRE". Simulated with `--broadcast` on Base Sepolia; see the workflow README for recorded transactions.
+
 ## Layout
 
 ```
-chain/          Hardhat project: ConsentRegistry.sol, tests, deploy script
+chain/          Hardhat project: ConsentRegistry.sol, tests, deploy and request-verification scripts
+cre/            Chainlink CRE project: idv-attestation workflow (TypeScript)
 src/lib/        consent model (receipts, typed data, pseudonyms), demo app manifests, chain client
 src/app/api/    attest, grant, revoke, verify, guardian/[address], consent/[id]
 src/app/        landing, /parent, /consent, /demo/[app], /audit, /developers
@@ -60,7 +70,7 @@ since the old parent key's consents no longer exist.
 
 ## Deploy to Base Sepolia
 
-Live registry: [`0x18bf6248cd8dfa615987a6c2b201a09ec81bd437`](https://sepolia.basescan.org/address/0x18bf6248cd8dfa615987a6c2b201a09ec81bd437) on Base Sepolia.
+Live registry: [`0x0607087d9ce704d70f9355c847e18236629f31d4`](https://sepolia.basescan.org/address/0x0607087d9ce704d70f9355c847e18236629f31d4) on Base Sepolia.
 
 No faucet working for you? Mine Sepolia ETH at [sepolia-faucet.pk910.de](https://sepolia-faucet.pk910.de/), then
 `npm run bridge --prefix chain` moves it to Base Sepolia through Base's official bridge.

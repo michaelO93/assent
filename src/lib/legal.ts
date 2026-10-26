@@ -197,6 +197,10 @@ export const HARD_QUESTIONS = [
     a: "They would need to pass an adult identity check. The remaining risk, a child using a parent's ID, is the same as with credit-card verification today, and the parent's dashboard shows every consent made in their name.",
   },
   {
+    q: "Doesn't Assent just become the new gatekeeper of who counts as a parent?",
+    a: "Not with the Chainlink CRE workflow. Instead of an Assent key, a decentralized oracle network checks each ID session with the provider and only writes a verification if its nodes agree. The registry records who verified each parent, so an auditor can tell the two routes apart.",
+  },
+  {
     q: "Who is the data controller?",
     a: "The app remains the controller for its own processing. Assent acts as a consent-management service for the app, and the registry holds no direct identifiers of either parent or child.",
   },

@@ -10,7 +10,8 @@
     "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
     "balance:base-sepolia": "hardhat run scripts/balance.ts --network baseSepolia",
     "balance:sepolia": "hardhat run scripts/balance.ts --network sepolia",
-    "bridge": "hardhat run scripts/bridge.ts --network sepolia"
+    "bridge": "hardhat run scripts/bridge.ts --network sepolia",
+    "request-verification": "hardhat run scripts/request-verification.ts --network baseSepolia"
   },
   "keywords": [],
   "author": "",

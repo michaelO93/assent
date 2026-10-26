@@ -1,0 +1,6 @@
+{
+  "chainSelectorName": "ethereum-testnet-sepolia-base-1",
+  "registryAddress": "0x0607087d9ce704d70f9355c847e18236629f31d4",
+  "idvApiUrl": "https://assent-sage.vercel.app/api/idv/sessions",
+  "gasLimit": "300000"
+}

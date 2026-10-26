@@ -27,8 +27,22 @@ LegalTech & RegTech (data privacy for minors)
 - **Live demo:** https://assent-sage.vercel.app (start at https://assent-sage.vercel.app/demo/doodle-quest)
 - **GitHub:** https://github.com/michaelO93/assent
 - **Demo video:** **[you]** paste the YouTube or Loom link once it's uploaded
-- **Contract (Base Sepolia):** https://sepolia.basescan.org/address/0x18bf6248cd8dfa615987a6c2b201a09ec81bd437
+- **Contract (Base Sepolia):** https://sepolia.basescan.org/address/0x0607087d9ce704d70f9355c847e18236629f31d4
 - **Legal mapping:** https://assent-sage.vercel.app/legal
+
+## Bounty: Best workflow with CRE (Chainlink)
+
+Tick this bounty on the form and paste the following into any bounty-specific field:
+
+> Assent uses a Chainlink CRE workflow ([`cre/idv-attestation`](https://github.com/michaelO93/assent/tree/main/cre/idv-attestation))
+> as the orchestration layer for adult identity verification, so no single key (including ours) decides who
+> counts as a verified parent. An **EVM log trigger** fires on `VerificationRequested` from our ConsentRegistry
+> on Base Sepolia; every DON node calls the ID provider's **HTTP API** and the DON agrees via identical-result
+> consensus; only an approved session produces a signed report, which the **EVM write** capability delivers
+> through the Chainlink forwarder to `ConsentRegistry.onReport()`. Simulated with `cre workflow simulate
+> --broadcast`, including a recorded onchain verification
+> ([tx](https://sepolia.basescan.org/tx/0xfb61d4b03da28f1975fc1738ba75cbc1344aa189de3c117d9d545c0cb5f9cdc5)),
+> a rejected unapproved session, and a run driven live from the app UI.
 
 ## Team
 
@@ -89,9 +103,12 @@ data controller is.
 ### How it's built
 
 - **Smart contract:** `ConsentRegistry` (Solidity 0.8.28, OpenZeppelin EIP-712 and SignatureChecker, so smart-account
-  and passkey wallets work too). It covers guardian-signed grants and revocations, attestor-verified guardians, a
-  per-app pseudonym and receipt hash per consent, and request IDs that link a QR-code request to its approval. There
-  are 9 Hardhat tests, including signature forgery, replay and request-ID tampering.
+  and passkey wallets work too). It covers guardian-signed grants and revocations, a per-app pseudonym and receipt
+  hash per consent, request IDs that link a QR-code request to its approval, and guardian verification either by an
+  attestor key or by Chainlink CRE reports (IReceiver). There are 11 Hardhat tests, including signature forgery,
+  replay, request-ID tampering and forwarder checks.
+- **Chainlink CRE workflow:** decentralized adult-ID attestation. A log trigger, the ID provider's API called by
+  every DON node with consensus, and a signed report written onchain. See `cre/idv-attestation`.
 - **App:** Next.js 15, TypeScript, viem and Tailwind, on Vercel. A relayer pays gas, so parents need no wallet or
   crypto. Abuse guards include per-IP rate limits, a per-parent cap and a gas floor.
 - **Network:** Base Sepolia testnet.
@@ -100,6 +117,9 @@ data controller is.
 
 ### Prototype limits
 
+- The CRE workflow runs in Chainlink's simulator (with real Base Sepolia transactions), not as a deployed workflow,
+  and simulation uses a mock forwarder that doesn't verify DON signatures. The live site uses the attestor key by
+  default so judges never wait on a workflow.
 - The adult ID check is **simulated**. Production would hand off to a provider such as Smile ID, Dojah or VerifyMe
   (Nigeria) or Yoti (UK/EU).
 - The parent's key is stored in the browser. Production would use a passkey-backed smart account, which the contract
