@@ -1,5 +1,6 @@
 {
   "chainId": 84532,
-  "address": "0x18bf6248cd8dfa615987a6c2b201a09ec81bd437",
-  "attestor": "0x22197621a203acbc30e7fb3a5210372e7d32f163"
+  "address": "0x0607087d9ce704d70f9355c847e18236629f31d4",
+  "attestor": "0x22197621a203acbc30e7fb3a5210372e7d32f163",
+  "creForwarder": "0x82300bd7c3958625581cc2f77bc6464dcecdf3e5"
 }

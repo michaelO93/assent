@@ -42,6 +42,11 @@ export const consentRegistryAbi = [
   },
   {
     "inputs": [],
+    "name": "NotForwarder",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "RequestAlreadyUsed",
     "type": "error"
   },
@@ -156,6 +161,19 @@ export const consentRegistryAbi = [
   },
   {
     "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "forwarder",
+        "type": "address"
+      }
+    ],
+    "name": "CreForwarderChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
     "inputs": [],
     "name": "EIP712DomainChanged",
     "type": "event"
@@ -187,9 +205,34 @@ export const consentRegistryAbi = [
         "internalType": "bytes32",
         "name": "evidenceHash",
         "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "verifiedBy",
+        "type": "address"
       }
     ],
     "name": "GuardianVerified",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "guardian",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "sessionRef",
+        "type": "bytes32"
+      }
+    ],
+    "name": "VerificationRequested",
     "type": "event"
   },
   {
@@ -238,6 +281,19 @@ export const consentRegistryAbi = [
         "internalType": "bytes32[]",
         "name": "",
         "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "creForwarder",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -440,6 +496,25 @@ export const consentRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "guardianVerifiedBy",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "consentId",
         "type": "bytes32"
@@ -488,6 +563,42 @@ export const consentRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "report",
+        "type": "bytes"
+      }
+    ],
+    "name": "onReport",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "guardian",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sessionRef",
+        "type": "bytes32"
+      }
+    ],
+    "name": "requestVerification",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "consentId",
         "type": "bytes32"
@@ -514,6 +625,38 @@ export const consentRegistryAbi = [
     "name": "setAttestor",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "forwarder",
+        "type": "address"
+      }
+    ],
+    "name": "setCreForwarder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {

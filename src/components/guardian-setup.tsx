@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Address } from "viem";
 import { Badge, Button, Card, Mono, Spinner, formatDate } from "@/components/ui";
 import { api } from "@/lib/client-api";
@@ -25,23 +25,36 @@ export function CreateKeyCard({ onCreate }: { onCreate: () => void }) {
 export function VerifyAdultCard({
   address,
   verifiedAt,
+  verifiedVia,
   onVerified,
 }: {
   address: Address;
   verifiedAt: number;
+  verifiedVia?: "cre" | "attestor" | null;
   onVerified: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // CRE mode: the request is onchain and the Chainlink DON reports back asynchronously.
+  const [waitingForDon, setWaitingForDon] = useState(false);
+
+  useEffect(() => {
+    if (!waitingForDon || verifiedAt > 0) return;
+    const id = setInterval(onVerified, 3000);
+    return () => clearInterval(id);
+  }, [waitingForDon, verifiedAt, onVerified]);
 
   if (verifiedAt > 0) {
     return (
       <Card className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-semibold">Verified adult</h2>
-          <p className="text-sm text-ink-soft">Since {formatDate(verifiedAt)} &middot; <Mono>{address}</Mono></p>
+          <p className="text-sm text-ink-soft">
+            Since {formatDate(verifiedAt)}
+            {verifiedVia === "cre" && <> &middot; confirmed by a Chainlink DON</>} &middot; <Mono>{address}</Mono>
+          </p>
         </div>
-        <Badge tone="good">Verified</Badge>
+        <Badge tone="good">{verifiedVia === "cre" ? "Verified via Chainlink CRE" : "Verified"}</Badge>
       </Card>
     );
   }
@@ -50,7 +63,8 @@ export function VerifyAdultCard({
     setBusy(true);
     setError(null);
     try {
-      await api("/api/attest", { guardian: address });
+      const res = await api<{ pending?: boolean }>("/api/attest", { guardian: address });
+      if (res.pending) setWaitingForDon(true);
       onVerified();
     } catch (e) {
       setError((e as Error).message);
@@ -75,9 +89,15 @@ export function VerifyAdultCard({
         </p>
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
-      <Button onClick={verify} disabled={busy}>
-        {busy && <Spinner />} Run ID check
-      </Button>
+      {waitingForDon ? (
+        <p className="flex items-center gap-2 text-sm text-ink-soft">
+          <Spinner /> Waiting for the Chainlink DON to confirm the check with the ID provider&hellip;
+        </p>
+      ) : (
+        <Button onClick={verify} disabled={busy}>
+          {busy && <Spinner />} Run ID check
+        </Button>
+      )}
     </Card>
   );
 }

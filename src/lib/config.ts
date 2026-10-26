@@ -10,7 +10,28 @@ export const network: NetworkName =
 const deployments = { localhost, baseSepolia: baseSepoliaDeployment };
 const chains: Record<NetworkName, Chain> = { localhost: hardhat, baseSepolia };
 
-export const deployment = deployments[network] as { chainId: number; address: string | null; attestor: string | null };
+export const deployment = deployments[network] as {
+  chainId: number;
+  address: string | null;
+  attestor: string | null;
+  creForwarder?: string | null;
+};
+
+/**
+ * "direct": the attestor key records ID checks (default, works without anything else running).
+ * "cre": the app only requests verification; a Chainlink CRE workflow checks the ID provider and
+ * reports back through the forwarder. Needs the workflow running (simulated or deployed).
+ */
+export const attestationMode: "direct" | "cre" =
+  process.env.NEXT_PUBLIC_ATTESTATION_MODE === "cre" ? "cre" : "direct";
+
+export function verifiedVia(verifiedBy: string | null | undefined): "cre" | "attestor" | null {
+  if (!verifiedBy || /^0x0+$/.test(verifiedBy)) return null;
+  return deployment.creForwarder && verifiedBy.toLowerCase() === deployment.creForwarder.toLowerCase()
+    ? "cre"
+    : "attestor";
+}
+
 export const chain = chains[network];
 
 export function explorerTx(hash: string): string | null {

@@ -1,7 +1,7 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import { keccak256, toHex, getAddress, type Hex } from "viem";
+import { encodeAbiParameters, keccak256, parseAbiParameters, toHex, getAddress, type Hex } from "viem";
 
 const APP_ID = keccak256(toHex("doodle-quest"));
 const OTHER_APP = keccak256(toHex("other-app"));
@@ -169,6 +169,39 @@ describe("ConsentRegistry", () => {
 
     await time.increase(366 * 86400);
     expect(await f.registry.read.isValid([consentId, APP_ID, SUBJECT])).to.equal(false);
+  });
+
+  it("verifies a guardian from a CRE report delivered by the configured forwarder", async () => {
+    const f = await loadFixture(deploy);
+    const forwarder = f.stranger;
+    const report = encodeAbiParameters(parseAbiParameters("address guardian, bytes32 evidenceHash"), [
+      f.guardian.account.address,
+      keccak256(toHex("idv-session-ref")),
+    ]);
+    const asForwarder = await hre.viem.getContractAt("ConsentRegistry", f.registry.address, {
+      client: { wallet: forwarder },
+    });
+
+    await expect(asForwarder.write.onReport(["0x", report])).to.be.rejectedWith("NotForwarder");
+    await f.registry.write.setCreForwarder([forwarder.account.address]);
+    await asForwarder.write.onReport(["0x", report]);
+
+    expect(await f.registry.read.guardianVerifiedAt([f.guardian.account.address])).to.not.equal(0n);
+    expect(getAddress(await f.registry.read.guardianVerifiedBy([f.guardian.account.address]))).to.equal(
+      getAddress(forwarder.account.address),
+    );
+    await expect(f.asRelayer.write.onReport(["0x", report])).to.be.rejectedWith("NotForwarder");
+  });
+
+  it("emits a verification request for the CRE workflow and advertises IReceiver", async () => {
+    const f = await loadFixture(deploy);
+    const ref = keccak256(toHex("session"));
+    await f.asRelayer.write.requestVerification([f.guardian.account.address, ref]);
+    const events = await f.registry.getEvents.VerificationRequested();
+    expect(events[0].args.sessionRef).to.equal(ref);
+    // IReceiver.onReport(bytes,bytes) selector, and IERC165
+    expect(await f.registry.read.supportsInterface(["0x805f2132"])).to.equal(true);
+    expect(await f.registry.read.supportsInterface(["0x01ffc9a7"])).to.equal(true);
   });
 
   it("restricts guardian verification to the attestor", async () => {

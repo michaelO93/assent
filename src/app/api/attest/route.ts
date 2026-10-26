@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { isAddress, keccak256, toHex } from "viem";
+import { attestationMode } from "@/lib/config";
 import { contractErrorMessage, publicClient, registry, sendTx } from "@/lib/server/chain";
 import { guardRelay } from "@/lib/server/guard";
+import { sessionRefFor } from "@/lib/server/idv";
 
-// Simulated adult identity verification. In production this is where an ID provider
-// (e.g. Smile ID, Yoti) confirms the guardian is an adult; only a hash of the provider's
-// reference ever reaches the chain, never the document or the person's details.
+// Adult identity verification against the (simulated) ID provider. In production this is where a
+// provider such as Smile ID or Yoti checks the guardian; only a hash of the provider's reference
+// ever reaches the chain, never the document or the person's details.
+//
+// In "direct" mode the attestor key records the result. In "cre" mode the app only opens a provider
+// session and emits VerificationRequested; the Chainlink CRE workflow confirms the session across its
+// DON and reports the verification onchain, so no single key decides who is a verified adult.
 export async function POST(req: Request) {
   const { guardian } = (await req.json()) as { guardian?: string };
   if (!guardian || !isAddress(guardian)) {
@@ -17,6 +23,16 @@ export async function POST(req: Request) {
 
   const blocked = await guardRelay(req, "attest");
   if (blocked) return blocked;
+
+  if (attestationMode === "cre") {
+    try {
+      const sessionRef = sessionRefFor(guardian);
+      const { hash } = await sendTx({ ...registry, functionName: "requestVerification", args: [guardian, sessionRef] });
+      return NextResponse.json({ pending: true, txHash: hash, provider: "Simulated ID check", via: "cre" });
+    } catch (e) {
+      return NextResponse.json({ error: contractErrorMessage(e) }, { status: 400 });
+    }
+  }
 
   const reference = `simulated-idv:${crypto.randomUUID()}`;
   try {

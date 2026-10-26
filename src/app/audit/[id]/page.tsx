@@ -11,6 +11,7 @@ type Audit = {
   app: { slug: string; name: string; operator: string } | null;
   valid: boolean;
   guardianVerifiedAt: number;
+  guardianVerifiedVia: "cre" | "attestor" | null;
   receipt: unknown;
   receiptMatches: boolean;
 };
@@ -50,7 +51,13 @@ export default function AuditRecord({ params }: { params: Promise<{ id: string }
           <Row k="App">{data.app ? `${data.app.name} (${data.app.operator})` : <Mono>{c.appId}</Mono>}</Row>
           <Row k="Guardian"><Mono>{c.guardian}</Mono></Row>
           <Row k="Guardian ID check">
-            {data.guardianVerifiedAt ? `Passed ${formatDate(data.guardianVerifiedAt)}` : "Not currently verified"}
+            {data.guardianVerifiedAt
+              ? `Passed ${formatDate(data.guardianVerifiedAt)}, ${
+                  data.guardianVerifiedVia === "cre"
+                    ? "confirmed by a Chainlink DON (CRE workflow)"
+                    : "recorded by the Assent attestor key"
+                }`
+              : "Not currently verified"}
           </Row>
           <Row k="Child (pseudonym)"><Mono>{c.subject}</Mono></Row>
           <Row k="Age band">{AGE_BANDS[c.ageBand]?.label}</Row>

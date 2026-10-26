@@ -10,6 +10,16 @@ async function main() {
   const attestor = (process.env.ATTESTOR_ADDRESS as `0x${string}` | undefined) ?? deployer.account.address;
 
   const registry = await hre.viem.deployContract("ConsentRegistry", [attestor]);
+
+  // Chainlink forwarder that may deliver CRE identity-check reports. Defaults to the Base Sepolia
+  // MockKeystoneForwarder used by `cre workflow simulate --broadcast` (docs: Forwarder Directory);
+  // switch to the production KeystoneForwarder with setCreForwarder() once the workflow is deployed.
+  const forwarder = (process.env.CRE_FORWARDER ??
+    (hre.network.name === "baseSepolia" ? "0x82300bd7c3958625581cc2f77bc6464dcecdf3e5" : "")) as `0x${string}` | "";
+  if (forwarder && attestor === deployer.account.address) {
+    const hash = await registry.write.setCreForwarder([forwarder]);
+    await publicClient.waitForTransactionReceipt({ hash });
+  }
   const chainId = await publicClient.getChainId();
   const artifact = await hre.artifacts.readArtifact("ConsentRegistry");
 
@@ -17,7 +27,7 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(
     resolve(outDir, `deployment.${hre.network.name}.json`),
-    JSON.stringify({ chainId, address: registry.address, attestor }, null, 2) + "\n",
+    JSON.stringify({ chainId, address: registry.address, attestor, creForwarder: forwarder || null }, null, 2) + "\n",
   );
   writeFileSync(
     resolve(outDir, "abi.ts"),

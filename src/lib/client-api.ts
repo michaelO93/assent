@@ -16,7 +16,12 @@ export type ConsentView = {
   app: string | null;
 };
 
-export type GuardianState = { verifiedAt: number; nonce: string; consents: ConsentView[] };
+export type GuardianState = {
+  verifiedAt: number;
+  verifiedVia: "cre" | "attestor" | null;
+  nonce: string;
+  consents: ConsentView[];
+};
 
 export async function api<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(path, {

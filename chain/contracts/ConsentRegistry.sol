@@ -3,6 +3,8 @@ pragma solidity ^0.8.24;
 
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IReceiver} from "./IReceiver.sol";
 
 /// @title Assent ConsentRegistry
 /// @notice Tamper-evident record of verifiable parental consent for children's data processing.
@@ -10,7 +12,9 @@ import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/Signa
 /// receipt (what was agreed to) appears only as a hash plus the scope list the parent approved.
 /// Grants and revocations must be signed by the guardian, so the operator relaying transactions
 /// can neither fabricate nor backdate consent on a parent's behalf.
-contract ConsentRegistry is EIP712 {
+/// Guardians can be verified by the attestor key or, without trusting any single party, by a
+/// Chainlink CRE workflow whose DON checks the identity provider and reports through the forwarder.
+contract ConsentRegistry is EIP712, IReceiver {
     enum AgeBand {
         Under13,
         Age13To15,
@@ -48,7 +52,11 @@ contract ConsentRegistry is EIP712 {
     bytes32 private constant REVOKE_TYPEHASH = keccak256("Revoke(bytes32 consentId,uint256 nonce)");
 
     address public attestor;
+    /// @notice Chainlink forwarder allowed to deliver CRE identity-check reports (zero disables).
+    address public creForwarder;
     mapping(address => uint64) public guardianVerifiedAt;
+    /// @notice Who verified each guardian: the attestor key or the CRE forwarder.
+    mapping(address => address) public guardianVerifiedBy;
     mapping(address => uint256) public nonces;
     mapping(bytes32 => Consent) private _consents;
     mapping(address => bytes32[]) private _guardianConsents;
@@ -56,7 +64,10 @@ contract ConsentRegistry is EIP712 {
     mapping(bytes32 => bytes32) public consentByRequest;
 
     event AttestorChanged(address indexed attestor);
-    event GuardianVerified(address indexed guardian, bytes32 evidenceHash);
+    event CreForwarderChanged(address indexed forwarder);
+    /// @notice Asks the CRE workflow to check `sessionRef` with the identity provider for `guardian`.
+    event VerificationRequested(address indexed guardian, bytes32 sessionRef);
+    event GuardianVerified(address indexed guardian, bytes32 evidenceHash, address indexed verifiedBy);
     event GuardianUnverified(address indexed guardian);
     event ConsentGranted(
         bytes32 indexed consentId,
@@ -77,6 +88,7 @@ contract ConsentRegistry is EIP712 {
     error UnknownConsent();
     error AlreadyRevoked();
     error RequestAlreadyUsed();
+    error NotForwarder();
 
     constructor(address attestor_) EIP712("Assent", "1") {
         attestor = attestor_;
@@ -93,16 +105,45 @@ contract ConsentRegistry is EIP712 {
         emit AttestorChanged(attestor_);
     }
 
+    function setCreForwarder(address forwarder) external onlyAttestor {
+        creForwarder = forwarder;
+        emit CreForwarderChanged(forwarder);
+    }
+
     /// @notice Record that an identity provider confirmed `guardian` is an adult.
     /// @param evidenceHash hash of the provider's verification reference (never the ID itself)
     function verifyGuardian(address guardian, bytes32 evidenceHash) external onlyAttestor {
-        guardianVerifiedAt[guardian] = uint64(block.timestamp);
-        emit GuardianVerified(guardian, evidenceHash);
+        _verify(guardian, evidenceHash);
     }
 
     function unverifyGuardian(address guardian) external onlyAttestor {
         delete guardianVerifiedAt[guardian];
+        delete guardianVerifiedBy[guardian];
         emit GuardianUnverified(guardian);
+    }
+
+    /// @notice Start a decentralized identity check. Anyone may ask; only a provider-approved
+    /// session, confirmed by the CRE workflow's DON, results in verification.
+    function requestVerification(address guardian, bytes32 sessionRef) external {
+        emit VerificationRequested(guardian, sessionRef);
+    }
+
+    /// @notice Receives the CRE workflow's report: abi.encode(address guardian, bytes32 evidenceHash).
+    /// @dev The forwarder only delivers reports signed by the workflow's DON.
+    function onReport(bytes calldata, bytes calldata report) external override {
+        if (creForwarder == address(0) || msg.sender != creForwarder) revert NotForwarder();
+        (address guardian, bytes32 evidenceHash) = abi.decode(report, (address, bytes32));
+        _verify(guardian, evidenceHash);
+    }
+
+    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
+        return interfaceId == type(IReceiver).interfaceId || interfaceId == type(IERC165).interfaceId;
+    }
+
+    function _verify(address guardian, bytes32 evidenceHash) private {
+        guardianVerifiedAt[guardian] = uint64(block.timestamp);
+        guardianVerifiedBy[guardian] = msg.sender;
+        emit GuardianVerified(guardian, evidenceHash, msg.sender);
     }
 
     function grant(GrantInput calldata g, bytes calldata signature) external returns (bytes32 consentId) {

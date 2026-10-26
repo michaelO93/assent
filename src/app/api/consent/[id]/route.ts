@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isHex, type Hex } from "viem";
 import { getAppVersions } from "@/lib/apps";
 import { appSlugOf, buildReceipt, receiptHash, type AgeBand } from "@/lib/consent";
+import { verifiedVia } from "@/lib/config";
 import { publicClient, readConsent, registry } from "@/lib/server/chain";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +18,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const versions = getAppVersions(appSlugOf(consent.appId));
   const app = versions[0];
-  const [guardianVerifiedAt, valid] = await Promise.all([
+  const [guardianVerifiedAt, guardianVerifiedBy, valid] = await Promise.all([
     publicClient.readContract({ ...registry, functionName: "guardianVerifiedAt", args: [consent.guardian] }),
+    publicClient.readContract({ ...registry, functionName: "guardianVerifiedBy", args: [consent.guardian] }),
     publicClient.readContract({
       ...registry,
       functionName: "isValid",
@@ -46,6 +48,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     app: app ? { slug: app.slug, name: app.name, operator: app.operator } : null,
     valid,
     guardianVerifiedAt: Number(guardianVerifiedAt),
+    guardianVerifiedVia: verifiedVia(guardianVerifiedBy),
     receipt,
     receiptMatches: !!matched,
   });

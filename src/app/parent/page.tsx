@@ -44,7 +44,8 @@ function ParentDashboard() {
           <VerifyAdultCard
             address={g.account.address}
             verifiedAt={g.state?.verifiedAt ?? 0}
-            onVerified={() => g.refresh()}
+            verifiedVia={g.state?.verifiedVia}
+            onVerified={g.refresh}
           />
 
           <Card className="space-y-5">

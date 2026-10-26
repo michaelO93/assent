@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAddress } from "viem";
 import { appSlugOf } from "@/lib/consent";
+import { verifiedVia } from "@/lib/config";
 import { publicClient, readConsent, registry } from "@/lib/server/chain";
 
 export const dynamic = "force-dynamic";
@@ -9,8 +10,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ address
   const { address } = await params;
   if (!isAddress(address)) return NextResponse.json({ error: "Invalid address" }, { status: 400 });
 
-  const [verifiedAt, nonce, ids] = await Promise.all([
+  const [verifiedAt, verifiedBy, nonce, ids] = await Promise.all([
     publicClient.readContract({ ...registry, functionName: "guardianVerifiedAt", args: [address] }),
+    publicClient.readContract({ ...registry, functionName: "guardianVerifiedBy", args: [address] }),
     publicClient.readContract({ ...registry, functionName: "nonces", args: [address] }),
     publicClient.readContract({ ...registry, functionName: "consentsOf", args: [address] }),
   ]);
@@ -18,6 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ address
 
   return NextResponse.json({
     verifiedAt: Number(verifiedAt),
+    verifiedVia: verifiedVia(verifiedBy),
     nonce: nonce.toString(),
     consents: consents
       .filter((c) => c !== null)
