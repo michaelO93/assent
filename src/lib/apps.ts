@@ -1,6 +1,7 @@
 // Data-use manifests for the demo apps. In production an app would register its manifest
 // with Assent; the manifest version is part of every consent receipt, so a parent's consent
-// is bound to exactly the notice they were shown.
+// is bound to exactly the notice they were shown. Published versions are never edited:
+// a change means a new version, and old versions stay so older consents remain auditable.
 
 export type Scope = {
   id: string;
@@ -18,6 +19,8 @@ export type AppManifest = {
   operator: string;
   tagline: string;
   policyUrl: string;
+  /** Who parents contact about their child's data (COPPA direct notice). Added in v2. */
+  contact?: { email: string; address: string };
   manifestVersion: number;
   accent: string;
   scopes: Scope[];
@@ -30,7 +33,8 @@ export const APPS: Record<string, AppManifest> = {
     operator: "Doodle Quest Studios Ltd (demo)",
     tagline: "Draw, colour and go on drawing adventures",
     policyUrl: "https://example.com/doodle-quest/privacy",
-    manifestVersion: 1,
+    contact: { email: "privacy@doodlequest.example", address: "12 Example Street, Lagos, Nigeria" },
+    manifestVersion: 2,
     accent: "#f97316",
     scopes: [
       {
@@ -86,7 +90,8 @@ export const APPS: Record<string, AppManifest> = {
     operator: "Sprout Learning (demo)",
     tagline: "Daily maths practice that grows with your child",
     policyUrl: "https://example.com/math-sprout/privacy",
-    manifestVersion: 1,
+    contact: { email: "privacy@mathsprout.example", address: "4 Sample Road, London, UK" },
+    manifestVersion: 2,
     accent: "#16a34a",
     scopes: [
       {
@@ -122,5 +127,14 @@ export const APPS: Record<string, AppManifest> = {
 
 export function getApp(slug: string | null | undefined): AppManifest | undefined {
   return slug ? APPS[slug] : undefined;
+}
+
+/** v1 was the current notice minus operator contact details. */
+const PREVIOUS: AppManifest[] = Object.values(APPS).map((m) => ({ ...m, contact: undefined, manifestVersion: 1 }));
+
+/** Every published version of an app's notice, newest first. */
+export function getAppVersions(slug: string | null | undefined): AppManifest[] {
+  const latest = getApp(slug);
+  return latest ? [latest, ...PREVIOUS.filter((m) => m.slug === latest.slug)] : [];
 }
 

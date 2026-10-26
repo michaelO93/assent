@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isHex, type Hex } from "viem";
-import { getApp } from "@/lib/apps";
+import { getAppVersions } from "@/lib/apps";
 import { appSlugOf, buildReceipt, receiptHash, type AgeBand } from "@/lib/consent";
 import { publicClient, readConsent, registry } from "@/lib/server/chain";
 
@@ -15,7 +15,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const consent = await readConsent(id as Hex);
   if (!consent) return NextResponse.json({ error: "No consent with this id" }, { status: 404 });
 
-  const app = getApp(appSlugOf(consent.appId));
+  const versions = getAppVersions(appSlugOf(consent.appId));
+  const app = versions[0];
   const [guardianVerifiedAt, valid] = await Promise.all([
     publicClient.readContract({ ...registry, functionName: "guardianVerifiedAt", args: [consent.guardian] }),
     publicClient.readContract({
@@ -25,16 +26,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }),
   ]);
 
-  const receipt = app
-    ? buildReceipt({
-        app,
-        guardian: consent.guardian,
-        subject: consent.subject,
-        ageBand: consent.ageBand as AgeBand,
-        expiresAt: consent.expiresAt,
-        approvedScopes: consent.scopes,
-      })
-    : null;
+  // Rebuild the receipt against each published notice version; the one whose hash matches
+  // the signed record is the notice the parent actually saw.
+  const candidates = versions.map((v) =>
+    buildReceipt({
+      app: v,
+      guardian: consent.guardian,
+      subject: consent.subject,
+      ageBand: consent.ageBand as AgeBand,
+      expiresAt: consent.expiresAt,
+      approvedScopes: consent.scopes,
+    }),
+  );
+  const matched = candidates.find((r) => receiptHash(r) === consent.receiptHash);
+  const receipt = matched ?? candidates[0] ?? null;
 
   return NextResponse.json({
     consent,
@@ -42,6 +47,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     valid,
     guardianVerifiedAt: Number(guardianVerifiedAt),
     receipt,
-    receiptMatches: receipt ? receiptHash(receipt) === consent.receiptHash : false,
+    receiptMatches: !!matched,
   });
 }

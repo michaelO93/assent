@@ -123,6 +123,7 @@ function DemoApp({ app }: { app: AppManifest }) {
                 Before you can play, a parent or carer needs to give permission. They scan this code with their phone
                 and see exactly what {app.name} wants to do.
               </p>
+              <ForKids app={app} />
               <HandoffQr app={app.slug} onApproved={onApproved} />
               <div className="border-t border-line pt-4">
                 <Button variant="secondary" onClick={askParent}>
@@ -166,6 +167,45 @@ function DemoApp({ app }: { app: AppManifest }) {
           <p className="text-xs text-ink-soft">Re-checked against the registry every 4 seconds.</p>
         </Card>
       )}
+    </div>
+  );
+}
+
+// Child-voiced wording for each permission. Kept out of the manifest so the signed notice
+// (and every receipt hash built from it) doesn't change when this copy is edited.
+const FOR_KIDS: Record<string, string> = {
+  "account.nickname": "remember the nickname you pick",
+  "progress.save": "save your progress",
+  "gallery.share": "show your drawings to friends your grown-up says are OK",
+  "voice.narration": "record your voice when you tell a story",
+  "analytics.product": "count which levels are tricky, without knowing it's you",
+  "teacher.report": "send your scores to your teacher each week",
+};
+
+const kidText = (id: string, fallback: string) => FOR_KIDS[id] ?? fallback.toLowerCase();
+
+function joinWords(words: string[], last: "and" | "or") {
+  return words.length < 2 ? words.join("") : `${words.slice(0, -1).join(", ")} ${last} ${words.at(-1)}`;
+}
+
+/** A plain-language explanation for the child (ICO Children's Code, standard 4: transparency). */
+function ForKids({ app }: { app: AppManifest }) {
+  const needs = app.scopes.filter((s) => s.required).map((s) => kidText(s.id, s.label));
+  const extras = app.scopes.filter((s) => !s.required).map((s) => kidText(s.id, s.label));
+  return (
+    <div className="rounded-2xl bg-muted p-4 text-left text-sm">
+      <p className="font-medium">What does this mean?</p>
+      <p className="mt-1 text-ink-soft">
+        To work, {app.name} needs to {joinWords(needs, "and")}.
+      </p>
+      {extras.length > 0 && (
+        <p className="mt-1 text-ink-soft">
+          It would also like to {joinWords(extras, "or")}. Your grown-up can say no to these and you can still play.
+        </p>
+      )}
+      <p className="mt-1 text-ink-soft">
+        {app.name} never learns your real name or birthday. Your grown-up can change their mind any time.
+      </p>
     </div>
   );
 }

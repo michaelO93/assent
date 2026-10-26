@@ -28,9 +28,8 @@ export const LAWS: Law[] = [
       {
         rule: "Direct notice to parents of what is collected, how it is used and who receives it",
         cite: "§312.4",
-        how: "The consent screen lists every data use with its purpose, data types, retention and recipients. The receipt binds the consent to that exact notice version.",
-        status: "partial",
-        note: "A complete direct notice also names the operator's contact details and links the online notice. The manifest format needs those fields.",
+        how: "The consent screen lists every data use with its purpose, data types, retention and recipients, plus the operator's contact details and a link to the full privacy policy. The receipt binds the consent to that exact notice version, and older versions stay auditable.",
+        status: "addressed",
       },
       {
         rule: "Separate consent before disclosing a child's data to third parties",
@@ -132,16 +131,15 @@ export const LAWS: Law[] = [
       {
         rule: "No nudge techniques toward weaker privacy",
         cite: "Standard 13",
-        how: "No pre-ticked boxes, and declining is always available.",
-        status: "partial",
-        note: "Approve is styled as the main button. Approve and Decline should carry equal visual weight.",
+        how: "No pre-ticked boxes, optional uses start off, and Approve and Decline are the same size and style.",
+        status: "addressed",
       },
       {
         rule: "Transparency the child can understand",
         cite: "Standard 4",
-        how: "The child only sees “Ask a grown-up to say yes”.",
-        status: "gap",
-        note: "Roadmap: a short, age-appropriate explanation of what the app will do with their data.",
+        how: "Before asking a grown-up, the child sees a plain-language summary of what the app needs, what it optionally asks for, and that it never learns their name or birthday.",
+        status: "partial",
+        note: "The wording is not yet tailored to each age band, and nothing has been tested with children.",
       },
       {
         rule: "Tell the child when a parent controls their account",

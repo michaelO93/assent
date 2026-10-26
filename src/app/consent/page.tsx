@@ -178,6 +178,13 @@ function ConsentRequest() {
             Notice version {app.manifestVersion} &middot;{" "}
             <a className="underline" href={app.policyUrl} target="_blank" rel="noreferrer">full privacy policy</a>
           </p>
+          {app.contact && (
+            <p className="mt-1 text-sm text-ink-soft">
+              Questions about your child&rsquo;s data:{" "}
+              <a className="underline" href={`mailto:${app.contact.email}`}>{app.contact.email}</a> &middot;{" "}
+              {app.operator}, {app.contact.address}
+            </p>
+          )}
         </div>
         <ul className="divide-y divide-line">
           {app.scopes.map((s) => (
@@ -220,8 +227,9 @@ function ConsentRequest() {
       </Card>
 
       {error && <p className="text-sm text-danger">{error}</p>}
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={approve} disabled={busy || !child || band === null}>
+      {/* Equal visual weight for both choices, so the design doesn't nudge toward sharing (ICO standard 13). */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Button variant="secondary" onClick={approve} disabled={busy || !child || band === null}>
           {busy && <Spinner />} Approve and sign
         </Button>
         {returnTo ? (

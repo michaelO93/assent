@@ -75,6 +75,7 @@ export function buildReceipt({ app, guardian, subject, ageBand, expiresAt, appro
       name: app.name,
       operator: app.operator,
       policyUrl: app.policyUrl,
+      contact: app.contact,
       manifestVersion: app.manifestVersion,
     },
     guardian: guardian.toLowerCase(),
