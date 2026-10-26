@@ -28,47 +28,44 @@ the parent can take it back. Every step is provable.*
 
 **Screen:** https://assent-sage.vercel.app, scroll slowly past the three problem cards.
 
-> "When a children's app asks *'Are you over 13?'*, a nine-year-old taps *yes*. That's how most apps 'get consent'
-> today. The apps that do check properly ask parents for ID and card details, and end up holding even more sensitive
-> data. And when a regulator asks for proof of consent, all the app has is a row in its own database."
+> "Ask a nine-year-old *'Are you over 13?'* and they tap *yes*. That's how most kids' apps 'get consent'. Apps that
+> check properly collect parents' IDs and card details instead. And when a regulator asks for proof, the app has a
+> row in its own database."
 
 ### 0:20 – 0:35 · What Assent is
 
 **Screen:** stay on the landing page, then scroll to "How it works".
 
-> "Assent fixes all three. Parents give verifiable, revocable consent. Apps get proof without ever learning who the
-> child is. And every consent is signed by the parent and recorded on a public ledger nobody can quietly edit."
+> "Assent fixes all three. Parents give revocable consent, apps get proof without learning who the child is, and
+> every consent is signed by the parent on a ledger nobody can quietly edit."
 
 ### 0:35 – 0:55 · The child asks (laptop)
 
 **Screen:** laptop, Doodle Quest demo app. Point at the QR code, then the "What does this mean?" box.
 
-> "Here's Doodle Quest, a drawing app for kids, using Assent. Before it collects anything, it asks for a grown-up.
-> The child gets a plain-language explanation of what the app wants, and a QR code for their parent."
+> "Doodle Quest, a kids' drawing app, uses Assent. Before collecting anything, it explains to the child in plain words
+> what it wants, and shows a QR code for their parent."
 
 ### 0:55 – 1:35 · The parent decides (phone)
 
 **Screen:** phone scans the QR code → consent screen. Scroll through the permissions slowly. Tick **Share drawings
 with approved friends**; leave voice and analytics off. Tap **Approve and sign**.
 
-> "The parent scans it on their own phone. They verified once that they're an adult. *In this prototype that ID check
-> is simulated; in production it's a provider like Smile ID or Yoti.*
+> "The parent scans it on their own phone. They proved once that they're an adult. *Here that ID check is simulated;
+> in production it's a provider like Smile ID or Yoti.*
 >
-> They see exactly what the app wants: each use, why, what data, how long it's kept, and who it's shared with.
-> Everything optional starts switched off, and Approve and Decline look the same, so the design doesn't push them
-> to share.
+> They see each use: why, what data, how long it's kept, who it's shared with. Optional ones start off, and Approve
+> and Decline look the same, so nothing nudges them to share.
 >
-> They'll allow sharing drawings with friends, but not voice recordings or analytics. Approve and sign. That signature
-> comes from a key on the parent's phone, so not even Assent can fake it."
+> Sharing drawings with friends: yes. Voice and analytics: no. Approve and sign, with a key only the parent holds."
 
 ### 1:35 – 1:55 · The app unlocks with the minimum (laptop)
 
 **Screen:** laptop. The app unlocks by itself. Point at the green "Share drawings" chip and the crossed-out ones, then
 scroll to "What Doodle Quest knows about this child".
 
-> "Back on the child's device, the app unlocks on its own, and only with what the parent allowed. Look at what the app
-> actually knows: a random ID that only works in this app, and the age band *under 13*. No name. No birthday. Nothing
-> that links this child to any other app."
+> "The child's device unlocks on its own, with only what the parent allowed. And the app knows just this: a random ID
+> that only works here, and *under 13*. No name, no birthday, nothing linking this child across apps."
 
 ### 1:55 – 2:15 · The parent changes their mind (phone → laptop)
 
@@ -83,9 +80,8 @@ switches to "Your grown-up turned off Doodle Quest".
 **Screen:** phone dashboard → **View audit record** (or open it on the laptop). Show the timeline, then the green
 **"Hash matches the signed record"** badge and the receipt.
 
-> "Now the part lawyers care about. Anyone (an auditor, a regulator, the app's compliance team) can look up this
-> consent. They see when it was granted and withdrawn, and the exact notice the parent agreed to. That hash proves the
-> record hasn't been altered since the parent signed it."
+> "Now the part lawyers care about. Any auditor or regulator can look up this consent: when it was granted, when it
+> was withdrawn, and the exact notice the parent agreed to. The matching hash proves nothing changed since they signed."
 
 ### 2:35 – 2:50 · The law, and the close
 
