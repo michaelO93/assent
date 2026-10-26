@@ -29,8 +29,21 @@ contract ConsentRegistry is EIP712 {
         string scopes; // comma-separated scope ids the guardian approved
     }
 
+    /// @notice A grant as submitted by the relayer. `requestId` links it to the device that asked
+    /// (the QR code on a child's screen); zero when the request and approval share a device.
+    struct GrantInput {
+        address guardian;
+        bytes32 appId;
+        bytes32 subject;
+        bytes32 receiptHash;
+        AgeBand ageBand;
+        uint64 expiresAt;
+        bytes32 requestId;
+        string scopes;
+    }
+
     bytes32 private constant GRANT_TYPEHASH = keccak256(
-        "Grant(bytes32 appId,bytes32 subject,bytes32 receiptHash,uint8 ageBand,uint64 expiresAt,uint256 nonce)"
+        "Grant(bytes32 appId,bytes32 subject,bytes32 receiptHash,uint8 ageBand,uint64 expiresAt,bytes32 requestId,uint256 nonce)"
     );
     bytes32 private constant REVOKE_TYPEHASH = keccak256("Revoke(bytes32 consentId,uint256 nonce)");
 
@@ -39,6 +52,8 @@ contract ConsentRegistry is EIP712 {
     mapping(address => uint256) public nonces;
     mapping(bytes32 => Consent) private _consents;
     mapping(address => bytes32[]) private _guardianConsents;
+    /// @notice Lets the requesting device find the consent its QR code led to.
+    mapping(bytes32 => bytes32) public consentByRequest;
 
     event AttestorChanged(address indexed attestor);
     event GuardianVerified(address indexed guardian, bytes32 evidenceHash);
@@ -61,6 +76,7 @@ contract ConsentRegistry is EIP712 {
     error AlreadyExpired();
     error UnknownConsent();
     error AlreadyRevoked();
+    error RequestAlreadyUsed();
 
     constructor(address attestor_) EIP712("Assent", "1") {
         attestor = attestor_;
@@ -89,39 +105,36 @@ contract ConsentRegistry is EIP712 {
         emit GuardianUnverified(guardian);
     }
 
-    function grant(
-        address guardian,
-        bytes32 appId,
-        bytes32 subject,
-        bytes32 receiptHash,
-        AgeBand ageBand,
-        uint64 expiresAt,
-        string calldata scopes,
-        bytes calldata signature
-    ) external returns (bytes32 consentId) {
-        if (guardianVerifiedAt[guardian] == 0) revert GuardianNotVerified();
-        if (expiresAt <= block.timestamp) revert AlreadyExpired();
+    function grant(GrantInput calldata g, bytes calldata signature) external returns (bytes32 consentId) {
+        if (guardianVerifiedAt[g.guardian] == 0) revert GuardianNotVerified();
+        if (g.expiresAt <= block.timestamp) revert AlreadyExpired();
+        if (g.requestId != bytes32(0) && consentByRequest[g.requestId] != bytes32(0)) revert RequestAlreadyUsed();
 
-        uint256 nonce = nonces[guardian]++;
+        uint256 nonce = nonces[g.guardian]++;
         bytes32 digest = _hashTypedDataV4(
-            keccak256(abi.encode(GRANT_TYPEHASH, appId, subject, receiptHash, uint8(ageBand), expiresAt, nonce))
+            keccak256(
+                abi.encode(
+                    GRANT_TYPEHASH, g.appId, g.subject, g.receiptHash, uint8(g.ageBand), g.expiresAt, g.requestId, nonce
+                )
+            )
         );
-        if (!SignatureChecker.isValidSignatureNow(guardian, digest, signature)) revert BadSignature();
+        if (!SignatureChecker.isValidSignatureNow(g.guardian, digest, signature)) revert BadSignature();
 
-        consentId = keccak256(abi.encode(guardian, appId, subject, nonce));
+        consentId = keccak256(abi.encode(g.guardian, g.appId, g.subject, nonce));
         _consents[consentId] = Consent({
-            guardian: guardian,
-            appId: appId,
-            subject: subject,
-            receiptHash: receiptHash,
-            ageBand: ageBand,
+            guardian: g.guardian,
+            appId: g.appId,
+            subject: g.subject,
+            receiptHash: g.receiptHash,
+            ageBand: g.ageBand,
             grantedAt: uint64(block.timestamp),
-            expiresAt: expiresAt,
+            expiresAt: g.expiresAt,
             revokedAt: 0,
-            scopes: scopes
+            scopes: g.scopes
         });
-        _guardianConsents[guardian].push(consentId);
-        emit ConsentGranted(consentId, guardian, appId, subject, receiptHash, ageBand, expiresAt, scopes);
+        _guardianConsents[g.guardian].push(consentId);
+        if (g.requestId != bytes32(0)) consentByRequest[g.requestId] = consentId;
+        emit ConsentGranted(consentId, g.guardian, g.appId, g.subject, g.receiptHash, g.ageBand, g.expiresAt, g.scopes);
     }
 
     function revoke(bytes32 consentId, bytes calldata signature) external {

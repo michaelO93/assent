@@ -8,6 +8,20 @@ const OTHER_APP = keccak256(toHex("other-app"));
 const SUBJECT = keccak256(toHex("child-secret|doodle-quest"));
 const RECEIPT = keccak256(toHex('{"receipt":"demo"}'));
 const SCOPES = "profile.nickname,progress.save,voice.disabled";
+const ZERO = `0x${"0".repeat(64)}` as Hex;
+
+function input(f: Fixture, expiresAt: bigint, requestId: Hex = ZERO) {
+  return {
+    guardian: f.guardian.account.address,
+    appId: APP_ID,
+    subject: SUBJECT,
+    receiptHash: RECEIPT,
+    ageBand: 0,
+    expiresAt,
+    requestId,
+    scopes: SCOPES,
+  } as const;
+}
 
 async function deploy() {
   const [attestor, guardian, relayer, stranger] = await hre.viem.getWalletClients();
@@ -22,7 +36,7 @@ async function deploy() {
 
 type Fixture = Awaited<ReturnType<typeof deploy>>;
 
-async function signGrant(f: Fixture, signer = f.guardian, nonce = 0n, expiresAt?: bigint) {
+async function signGrant(f: Fixture, signer = f.guardian, nonce = 0n, expiresAt?: bigint, requestId: Hex = ZERO) {
   const exp = expiresAt ?? BigInt(await time.latest()) + 365n * 86400n;
   const signature = await signer.signTypedData({
     domain: f.domain,
@@ -33,11 +47,12 @@ async function signGrant(f: Fixture, signer = f.guardian, nonce = 0n, expiresAt?
         { name: "receiptHash", type: "bytes32" },
         { name: "ageBand", type: "uint8" },
         { name: "expiresAt", type: "uint64" },
+        { name: "requestId", type: "bytes32" },
         { name: "nonce", type: "uint256" },
       ],
     },
     primaryType: "Grant",
-    message: { appId: APP_ID, subject: SUBJECT, receiptHash: RECEIPT, ageBand: 0, expiresAt: exp, nonce },
+    message: { appId: APP_ID, subject: SUBJECT, receiptHash: RECEIPT, ageBand: 0, expiresAt: exp, requestId, nonce },
   });
   return { signature, exp };
 }
@@ -54,7 +69,7 @@ async function signRevoke(f: Fixture, consentId: Hex, nonce: bigint, signer = f.
 async function grantConsent(f: Fixture) {
   await f.registry.write.verifyGuardian([f.guardian.account.address, keccak256(toHex("idv-ref-123"))]);
   const { signature, exp } = await signGrant(f);
-  const args = [f.guardian.account.address, APP_ID, SUBJECT, RECEIPT, 0, exp, SCOPES, signature] as const;
+  const args = [input(f, exp), signature] as const;
   const consentId = (await f.asRelayer.simulate.grant(args)).result;
   await f.asRelayer.write.grant(args);
   return consentId;
@@ -80,7 +95,7 @@ describe("ConsentRegistry", () => {
     const f = await loadFixture(deploy);
     const { signature, exp } = await signGrant(f);
     await expect(
-      f.asRelayer.write.grant([f.guardian.account.address, APP_ID, SUBJECT, RECEIPT, 0, exp, SCOPES, signature]),
+      f.asRelayer.write.grant([input(f, exp), signature]),
     ).to.be.rejectedWith("GuardianNotVerified");
   });
 
@@ -89,7 +104,7 @@ describe("ConsentRegistry", () => {
     await f.registry.write.verifyGuardian([f.guardian.account.address, keccak256(toHex("ref"))]);
     const { signature, exp } = await signGrant(f, f.stranger);
     await expect(
-      f.asRelayer.write.grant([f.guardian.account.address, APP_ID, SUBJECT, RECEIPT, 0, exp, SCOPES, signature]),
+      f.asRelayer.write.grant([input(f, exp), signature]),
     ).to.be.rejectedWith("BadSignature");
   });
 
@@ -97,9 +112,34 @@ describe("ConsentRegistry", () => {
     const f = await loadFixture(deploy);
     await f.registry.write.verifyGuardian([f.guardian.account.address, keccak256(toHex("ref"))]);
     const { signature, exp } = await signGrant(f);
-    const args = [f.guardian.account.address, APP_ID, SUBJECT, RECEIPT, 0, exp, SCOPES, signature] as const;
+    const args = [input(f, exp), signature] as const;
     await f.asRelayer.write.grant(args);
     await expect(f.asRelayer.write.grant(args)).to.be.rejectedWith("BadSignature");
+  });
+
+  it("links a grant to the device that requested it, once", async () => {
+    const f = await loadFixture(deploy);
+    await f.registry.write.verifyGuardian([f.guardian.account.address, keccak256(toHex("ref"))]);
+    const requestId = keccak256(toHex("qr-request-1"));
+    const { signature, exp } = await signGrant(f, f.guardian, 0n, undefined, requestId);
+    const args = [input(f, exp, requestId), signature] as const;
+    const consentId = (await f.asRelayer.simulate.grant(args)).result;
+    await f.asRelayer.write.grant(args);
+    expect(await f.registry.read.consentByRequest([requestId])).to.equal(consentId);
+
+    const again = await signGrant(f, f.guardian, 1n, undefined, requestId);
+    await expect(f.asRelayer.write.grant([input(f, again.exp, requestId), again.signature])).to.be.rejectedWith(
+      "RequestAlreadyUsed",
+    );
+  });
+
+  it("rejects a relayer swapping in a different request id", async () => {
+    const f = await loadFixture(deploy);
+    await f.registry.write.verifyGuardian([f.guardian.account.address, keccak256(toHex("ref"))]);
+    const { signature, exp } = await signGrant(f, f.guardian, 0n, undefined, keccak256(toHex("parent-approved")));
+    await expect(
+      f.asRelayer.write.grant([input(f, exp, keccak256(toHex("attacker-device"))), signature]),
+    ).to.be.rejectedWith("BadSignature");
   });
 
   it("only accepts revocation signed by the guardian", async () => {

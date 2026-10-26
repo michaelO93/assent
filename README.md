@@ -60,7 +60,7 @@ since the old parent key's consents no longer exist.
 
 ## Deploy to Base Sepolia
 
-Live registry: [`0xa94b978946d23f141f1c0cdc9e9eb5e69d1f81e9`](https://sepolia.basescan.org/address/0xa94b978946d23f141f1c0cdc9e9eb5e69d1f81e9) on Base Sepolia.
+Live registry: [`0x18bf6248cd8dfa615987a6c2b201a09ec81bd437`](https://sepolia.basescan.org/address/0x18bf6248cd8dfa615987a6c2b201a09ec81bd437) on Base Sepolia.
 
 No faucet working for you? Mine Sepolia ETH at [sepolia-faucet.pk910.de](https://sepolia-faucet.pk910.de/), then
 `npm run bridge --prefix chain` moves it to Base Sepolia through Base's official bridge.
@@ -76,15 +76,16 @@ No faucet working for you? Mine Sepolia ETH at [sepolia-faucet.pk910.de](https:/
 - The parent key lives in localStorage. Production: passkey-backed smart account (the contract already accepts
   ERC-1271 signatures via `SignatureChecker`).
 - One key relays and attests. Production: separate attestor per ID provider, rate-limited relayer.
-- The child-to-parent hand-off is a button. Production: QR code on the child's device opens the request on the
-  parent's phone.
+- QR hand-off: the request id in the QR code is a bearer secret until the parent approves. Anyone who photographs
+  the code before then could receive the consent on their own device. Production: short expiry plus a code shown
+  on both screens.
 
 ## Plan to the deadline
 
 - [x] **Day 1 (Oct 26)**: contract + tests, consent/grant/revoke/verify API, parent dashboard, consent screen, demo
   app, audit view; full loop verified locally
 - [x] **Day 2 (done Oct 26)**: deployed to Base Sepolia + Vercel, BaseScan links
-- [ ] QR hand-off between the child's and parent's devices
+- [x] QR hand-off between the child's and parent's devices (request id recorded on-chain, child device polls)
 - [ ] **Day 3 (Oct 28)**: polish (mobile, empty/error states), second demo app showing unlinkable pseudonyms,
   legal mapping page (COPPA / GDPR Art. 8 / NDPA requirement → feature)
 - [ ] **Day 4 (Oct 29)**: demo video script + recording, README screenshots

@@ -39,6 +39,7 @@ export const grantTypes = {
     { name: "receiptHash", type: "bytes32" },
     { name: "ageBand", type: "uint8" },
     { name: "expiresAt", type: "uint64" },
+    { name: "requestId", type: "bytes32" },
     { name: "nonce", type: "uint256" },
   ],
 } as const;
@@ -117,6 +118,11 @@ export function validateScopes(app: AppManifest, approvedScopes: string[]): stri
 }
 
 export const ONE_YEAR = 365 * 24 * 60 * 60;
+
+/** requestId for approvals made on the same device as the request (no QR hand-off). */
+export const NO_REQUEST: Hex = `0x${"0".repeat(64)}`;
+
+export const isBytes32 = (v: unknown): v is Hex => typeof v === "string" && /^0x[0-9a-fA-F]{64}$/.test(v);
 
 export function appSlugOf(appId: Hex): string | undefined {
   return Object.keys(APPS).find((slug) => appIdOf(slug) === appId.toLowerCase());

@@ -8,12 +8,14 @@ import { getApp } from "@/lib/apps";
 import { api } from "@/lib/client-api";
 import {
   AGE_BANDS,
+  NO_REQUEST,
   ONE_YEAR,
   ageBandFromBirthYear,
   appIdOf,
   buildReceipt,
   eip712Domain,
   grantTypes,
+  isBytes32,
   receiptHash,
   subjectOf,
 } from "@/lib/consent";
@@ -33,17 +35,39 @@ function ConsentRequest() {
   const app = getApp(params.get("app"));
   const returnTo = safeReturnPath(params.get("return"));
   const state = params.get("state") ?? "";
+  // Set when the request came from a QR code on another device: there is nowhere to redirect,
+  // so the child's device polls the registry for this id instead.
+  const requestParam = params.get("request");
+  const requestId = isBytes32(requestParam) ? requestParam : null;
   const g = useGuardian();
 
   const [childId, setChildId] = useState<string | null>(null);
   const [optional, setOptional] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<"approved" | "declined" | null>(null);
 
-  if (!app || !returnTo) {
+  if (!app || (!returnTo && !requestId)) {
     return <Card className="text-danger">This permission request is incomplete or from an unknown app.</Card>;
   }
   if (!g.ready) return null;
+
+  if (outcome) {
+    return (
+      <Card className="mx-auto max-w-lg space-y-3 text-center">
+        <p className="text-4xl">{outcome === "approved" ? "\u2705" : "\u{1F44B}"}</p>
+        <h1 className="text-xl font-semibold">
+          {outcome === "approved" ? `${app.name} is now allowed` : `You declined ${app.name}'s request`}
+        </h1>
+        <p className="text-sm text-ink-soft">
+          {outcome === "approved"
+            ? "Your child's device will unlock in a few seconds. You can change or withdraw this any time from your dashboard."
+            : "Nothing was shared. You can close this page."}
+        </p>
+        {outcome === "approved" && <ButtonLink href="/parent" variant="secondary">Open my dashboard</ButtonLink>}
+      </Card>
+    );
+  }
 
   const here = `/consent?${params.toString()}`;
   const verified = (g.state?.verifiedAt ?? 0) > 0;
@@ -84,6 +108,7 @@ function ConsentRequest() {
           receiptHash: receiptHash(receipt),
           ageBand: band,
           expiresAt: BigInt(expiresAt),
+          requestId: requestId ?? NO_REQUEST,
           nonce: BigInt(g.state.nonce),
         },
       });
@@ -95,8 +120,13 @@ function ConsentRequest() {
         expiresAt,
         approvedScopes,
         signature,
+        ...(requestId ? { requestId } : {}),
       });
-      const back = new URL(returnTo!, window.location.origin);
+      if (!returnTo) {
+        setOutcome("approved");
+        return;
+      }
+      const back = new URL(returnTo, window.location.origin);
       back.searchParams.set("consentId", consentId);
       back.searchParams.set("subject", subject);
       back.searchParams.set("state", state);
@@ -194,7 +224,11 @@ function ConsentRequest() {
         <Button onClick={approve} disabled={busy || !child || band === null}>
           {busy && <Spinner />} Approve and sign
         </Button>
-        <ButtonLink href={returnTo} variant="secondary">Decline</ButtonLink>
+        {returnTo ? (
+          <ButtonLink href={returnTo} variant="secondary">Decline</ButtonLink>
+        ) : (
+          <Button variant="secondary" onClick={() => setOutcome("declined")}>Decline</Button>
+        )}
       </div>
     </div>
   );

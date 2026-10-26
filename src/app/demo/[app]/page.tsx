@@ -2,6 +2,7 @@
 
 import { Suspense, use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { HandoffQr } from "@/components/handoff-qr";
 import { Badge, Button, Card, Mono, short } from "@/components/ui";
 import { getApp, type AppManifest } from "@/lib/apps";
 import { AGE_BANDS } from "@/lib/consent";
@@ -83,6 +84,14 @@ function DemoApp({ app }: { app: AppManifest }) {
     window.location.assign(`/consent?${q}`);
   }
 
+  const onApproved = useCallback(
+    (a: Saved) => {
+      save(storageKey(app.slug), a);
+      setSaved(a);
+    },
+    [app.slug],
+  );
+
   function signOut() {
     save(storageKey(app.slug), null);
     setSaved(null);
@@ -108,17 +117,18 @@ function DemoApp({ app }: { app: AppManifest }) {
 
         <div className="p-6">
           {!saved && (
-            <div className="mx-auto max-w-md space-y-4 py-8 text-center">
-              <p className="text-5xl">🖍️</p>
+            <div className="mx-auto max-w-md space-y-5 py-6 text-center">
               <h2 className="text-xl font-semibold">Ask a grown-up to say yes</h2>
               <p className="text-sm text-ink-soft">
-                Before you can play, a parent or carer needs to give permission. They&rsquo;ll see exactly what{" "}
-                {app.name} wants to do.
+                Before you can play, a parent or carer needs to give permission. They scan this code with their phone
+                and see exactly what {app.name} wants to do.
               </p>
-              <Button onClick={askParent} className="w-full sm:w-auto">I&rsquo;m the grown-up: review the request</Button>
-              <p className="text-xs text-ink-soft">
-                In production the child&rsquo;s device shows a QR code and the request opens on the parent&rsquo;s phone.
-              </p>
+              <HandoffQr app={app.slug} onApproved={onApproved} />
+              <div className="border-t border-line pt-4">
+                <Button variant="secondary" onClick={askParent}>
+                  Grown-up using this device? Review here
+                </Button>
+              </div>
             </div>
           )}
 

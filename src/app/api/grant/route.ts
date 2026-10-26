@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { isAddress, isHex, type Address, type Hex } from "viem";
 import { getApp } from "@/lib/apps";
 import {
+  NO_REQUEST,
   appIdOf,
   buildReceipt,
+  isBytes32,
   normalizeScopes,
   receiptHash,
   validateScopes,
@@ -19,6 +21,7 @@ type GrantBody = {
   ageBand: AgeBand;
   expiresAt: number;
   approvedScopes: string[];
+  requestId?: Hex;
   signature: Hex;
 };
 
@@ -33,6 +36,8 @@ export async function POST(req: Request) {
   if (body.ageBand !== 0 && body.ageBand !== 1 && body.ageBand !== 2) return bad("Invalid age band");
   if (!Number.isInteger(body.expiresAt)) return bad("Invalid expiry");
   if (!body.signature || !isHex(body.signature)) return bad("Missing signature");
+  if (body.requestId !== undefined && !isBytes32(body.requestId)) return bad("Invalid request id");
+  const requestId = body.requestId ?? NO_REQUEST;
   const scopes = body.approvedScopes ?? [];
   const scopeError = validateScopes(app, scopes);
   if (scopeError) return bad(scopeError);
@@ -59,13 +64,16 @@ export async function POST(req: Request) {
       ...registry,
       functionName: "grant",
       args: [
-        body.guardian,
-        appIdOf(app.slug),
-        body.subject,
-        hash,
-        body.ageBand,
-        BigInt(body.expiresAt!),
-        normalizeScopes(app, scopes),
+        {
+          guardian: body.guardian,
+          appId: appIdOf(app.slug),
+          subject: body.subject,
+          receiptHash: hash,
+          ageBand: body.ageBand,
+          expiresAt: BigInt(body.expiresAt!),
+          requestId,
+          scopes: normalizeScopes(app, scopes),
+        },
         body.signature,
       ],
     });

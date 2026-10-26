@@ -41,6 +41,11 @@ export const consentRegistryAbi = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "RequestAlreadyUsed",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -203,6 +208,25 @@ export const consentRegistryAbi = [
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "consentByRequest",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "guardian",
         "type": "address"
@@ -331,39 +355,51 @@ export const consentRegistryAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "guardian",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "appId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "subject",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "receiptHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "enum ConsentRegistry.AgeBand",
-        "name": "ageBand",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint64",
-        "name": "expiresAt",
-        "type": "uint64"
-      },
-      {
-        "internalType": "string",
-        "name": "scopes",
-        "type": "string"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "guardian",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "appId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "subject",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "receiptHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "enum ConsentRegistry.AgeBand",
+            "name": "ageBand",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint64",
+            "name": "expiresAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "requestId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "scopes",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct ConsentRegistry.GrantInput",
+        "name": "g",
+        "type": "tuple"
       },
       {
         "internalType": "bytes",
