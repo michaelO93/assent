@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 !.env.example
+
+# Local working drafts (hackathon script and submission text)
+docs/DEMO_SCRIPT.md
+docs/SUBMISSION.md
