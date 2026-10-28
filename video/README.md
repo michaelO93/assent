@@ -9,7 +9,8 @@ npm run make --prefix video          # writes video/out/assent-demo.mp4
 ```
 
 - **Voice:** the free macOS "Daniel" voice by default (`SAY_VOICE=...` to change it). For a more natural voice, put
-  `ELEVENLABS_API_KEY=...` (and optionally `ELEVENLABS_VOICE_ID=...`) in `video/.env`, which git ignores.
+  `ELEVENLABS_API_KEY=...` (and optionally `ELEVENLABS_VOICE_ID=...`) in `video/.env` or the app's `.env.local`;
+  git ignores both.
 - **Script:** the narration lives in `SCENES` in `make-video.mjs`. Each scene lasts as long as its narration (or its
   blockchain transaction, if slower), so editing a line re-times the video automatically.
 - **Target:** the live site by default; `SITE=http://localhost:3100` records a local server instead.

@@ -17,6 +17,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "out");
 const SITE = (process.env.SITE ?? "https://assent-sage.vercel.app").replace(/\/$/, "");
 loadEnv(join(HERE, ".env"));
+loadEnv(join(HERE, "..", ".env.local"), "ELEVENLABS_");
 
 // One entry per scene: what the voice says and the short chapter label shown on screen.
 const SCENES = [
@@ -374,10 +375,11 @@ function mux(videoPath, starts) {
   return file;
 }
 
-function loadEnv(path) {
+/** Loads KEY=value lines into process.env; with `prefix`, only keys starting with it. */
+function loadEnv(path, prefix = "") {
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+    if (m && m[1].startsWith(prefix) && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
   }
 }
