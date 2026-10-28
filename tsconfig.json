@@ -37,6 +37,7 @@
   "exclude": [
     "chain",
     "cre",
-    "node_modules"
+    "node_modules",
+    "video"
   ]
 }

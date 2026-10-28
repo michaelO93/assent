@@ -1,0 +1,11 @@
+{
+  "name": "assent-demo-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "make": "node make-video.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}
